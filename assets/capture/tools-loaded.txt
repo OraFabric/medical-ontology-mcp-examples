@@ -1,0 +1,14 @@
+endpoint         https://orafabric.com/api/dev/mcp
+key              set (52 chars, hidden)
+handshake        ok  protocol=2024-11-05  session=(none)
+tools/list       ok  6 tools
+                   retrieve_evidence  filters include_hypotheses max_evidence query
+                   check_relation     both_directions filters limit object relation subject
+                   explore_concept    concept direction filters limit relations
+                   get_paper          id include_findings
+                   resolve_concept    limit name type
+                   get_coverage       (none)
+get_coverage     ok  datasets=25  concepts=23419720  relationships=39268665
+                     updated_at=2026-11-06T14:44:11Z
+
+connected. next: docs/quickstart.md

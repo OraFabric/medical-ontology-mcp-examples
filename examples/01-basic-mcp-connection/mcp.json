@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "orafabric": {
+      "url": "https://orafabric.com/api/dev/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}

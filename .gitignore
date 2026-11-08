@@ -1,0 +1,27 @@
+# secrets and local configuration
+.env
+.env.*
+!.env.example
+*.local.json
+mcp.json.local
+claude_desktop_config.json
+.cursor/mcp.json
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# example output
+*.dossier.md
+context.json
+*.diff
+output/
+
+# editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json

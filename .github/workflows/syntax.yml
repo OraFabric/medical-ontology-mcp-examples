@@ -1,0 +1,31 @@
+name: syntax
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Every example must at least import and parse. This is the cheapest possible
+      # guarantee that a PR does not ship a broken script.
+      - run: python -m compileall -q examples assets
+
+      - name: guard against committed secrets
+        run: |
+          # Scan every tracked text file, not a chosen few: a key is most likely
+          # to be pasted into a .py snippet or a .md walkthrough. `.env` itself is
+          # gitignored, so it can never reach here — checking only it guards nothing.
+          # .env.example is excluded because it is meant to hold a placeholder.
+          if git grep -nIE \
+               'ora_live_[0-9a-zA-Z]{12,}|AKIA[0-9A-Z]{16}|sk_(live|test)_[0-9a-zA-Z]{10,}|Bearer [0-9a-zA-Z_-]{24,}|-----BEGIN (RSA|OPENSSH|EC) PRIVATE KEY-----' \
+               -- . ':(exclude).env.example' ':(exclude).github/workflows/*'; then
+            echo "::error::a tracked file contains what looks like a real credential"
+            exit 1
+          fi
+          echo "no credential patterns found in tracked files"

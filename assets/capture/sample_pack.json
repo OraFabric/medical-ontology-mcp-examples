@@ -1,0 +1,50 @@
+{
+  "_fixture": "SYNTHETIC fixture for testing the renderer. Shape follows a real retrieve_evidence payload, contents are illustrative. Regenerate from a real pack before publishing any screenshot made from this file.",
+  "query": "metformin combined with immune checkpoint inhibitor improves response CD8 T cell",
+  "datasets": [
+    { "id": 17, "name": "Bispecifics, T-cell Engagers & Next-Generation Immunomodulators" },
+    { "id": 14, "name": "Biomarkers, Liquid Biopsy & Minimal Residual Disease" }
+  ],
+  "evidence": [
+    {
+      "claim": "Metformin plus pembrolizumab increases CD8+ T cell infiltration in tumour tissue",
+      "source_sentence": "Combination of metformin with pembrolizumab increased intratumoural CD8+ T cell infiltration compared with pembrolizumab alone.",
+      "study_type": "retrospective cohort",
+      "strength": "moderate",
+      "paper": {
+        "id": "pmc-fixture-001",
+        "title": "Metformin and immune checkpoint blockade: intratumoural T cell infiltration",
+        "journal": "Journal (fixture)",
+        "year": 2021
+      }
+    },
+    {
+      "claim": "Metformin use is associated with improved progression-free survival on checkpoint blockade",
+      "source_sentence": "Metformin use was associated with improved progression-free survival (HR 0.80, 95% CI 0.66-0.97).",
+      "study_type": "multicentre cohort",
+      "strength": "moderate",
+      "paper": {
+        "id": "pmc-fixture-002",
+        "title": "Metformin exposure and outcomes on PD-1 blockade",
+        "journal": "Journal (fixture)",
+        "year": 2022
+      }
+    },
+    {
+      "claim": "Metformin inhibits MYC translation in tumour cells",
+      "source_sentence": "Metformin reduced MYC protein levels through AMPK-dependent inhibition of translation.",
+      "study_type": "cell line",
+      "strength": "moderate",
+      "paper": {
+        "id": "pmc-fixture-003",
+        "title": "AMPK-dependent control of MYC translation",
+        "journal": "Journal (fixture)",
+        "year": 2019
+      }
+    }
+  ],
+  "entities": [],
+  "edges": [],
+  "paths": [],
+  "papers": []
+}

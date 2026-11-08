@@ -1,0 +1,5 @@
+# This example has no third-party dependencies: it uses the Python standard library
+# only (urllib + json), which is deliberate — fewer moving parts on first contact.
+#
+# If you later add an HTTP library, pin it here. Example:
+# requests>=2.31,<3
