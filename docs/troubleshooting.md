@@ -26,10 +26,19 @@ The client in `examples/04` strips a leading `Bearer ` defensively for this reas
 
 ## `402` / `insufficient_balance`
 
+It comes back **HTTP 200**, not 402 — a failed tool call is still a JSON-RPC *result*:
+
 ```json
-{"error": {"code": "insufficient_balance",
- "message": "Your balance is too low to complete this call. Top up at https://orafabric.com/dev/topup"}}
+{"jsonrpc": "2.0", "id": 7, "result": {
+  "content": [{"type": "text", "text": "{\"error\": {\"code\": \"insufficient_balance\", \"message\": \"...\"}}"}],
+  "isError": true,
+  "structuredContent": {"error": {"code": "insufficient_balance",
+   "message": "Your balance is too low to complete this call. Top up at https://orafabric.com/dev/topup"}}}}
 ```
+
+`invalid_api_key` is different: that one is a real JSON-RPC `error` on HTTP 401. The
+client in `examples/04` turns both into `MCPError` with `.code` set, so application code
+only ever branches on the code.
 
 Only paid tools return this; `get_coverage` and `resolve_concept` keep working, which is
 why the quickstart uses them.

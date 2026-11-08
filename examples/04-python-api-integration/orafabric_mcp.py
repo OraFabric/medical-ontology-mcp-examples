@@ -15,22 +15,25 @@ Usage:
     client = OraFabricMCP()                                  # ORAFABRIC_API_KEY
     client.call("get_coverage")                              # free
     client.call("resolve_concept", {"name": "EGFR"})         # free
-    client.call("retrieve_evidence", {"query": "..."})       # $0.03, 11-27 s
+    client.call("retrieve_evidence", {"query": "..."})       # $0.03, 11-50 s
 
-Business errors arrive as HTTP 200 with a JSON-RPC error body, and are raised as
-MCPError with `.code` set to the server code (`ambiguous_concept`, `insufficient_balance`,
-`invalid_api_key`, ...). Branch on `code`, never on the message text.
+Business errors arrive in two shapes, and both end up as the same `MCPError`:
+
+    HTTP 401 with a JSON-RPC `error` object        (invalid_api_key, bad header)
+    HTTP 200 with `result.isError` + `structuredContent.error`
+                                                   (insufficient_balance, ambiguous_concept)
+
+Either way `.code` carries the server code. Branch on `code`, never on the message text.
 """
 
 import json
 import os
-import re
 import time
 import urllib.error
 import urllib.request
 
 DEFAULT_ENDPOINT = "https://orafabric.com/api/dev/mcp"
-DEFAULT_TIMEOUT = 180  # retrieval packs have been observed taking 11-27 s
+DEFAULT_TIMEOUT = 180  # retrieval packs have been observed taking 11-50 s
 
 PAID_TOOLS = {"retrieve_evidence", "check_relation", "explore_concept", "get_paper"}
 
@@ -96,7 +99,34 @@ class OraFabricMCP:
             raise MCPError("cannot reach %s: %s" % (self.endpoint, getattr(exc, "reason", exc)))
 
     @staticmethod
-    def _decode(body):
+    def _events(body):
+        """Split a text/event-stream body into events.
+
+        SSE frames are separated by **blank lines**, not by `event:` lines — `event:`
+        is an optional field inside a frame. Splitting on `event:` breaks the moment a
+        server sends a notification (progress, logging) ahead of the result without
+        labelling it, because every `data:` line in the body then gets concatenated
+        into one invalid JSON blob.
+        """
+        events, current = [], []
+        for line in body.splitlines():
+            if not line.strip():
+                if current:
+                    events.append(current)
+                    current = []
+                continue
+            current.append(line)
+        if current:
+            events.append(current)
+        return events
+
+    @classmethod
+    def _decode(cls, body):
+        """Return the JSON-RPC response for our request.
+
+        Prefer the last frame that actually carries an id and a result or error; skip
+        notifications (no id) and anything that does not parse.
+        """
         body = body.strip()
         if not body:
             return {}
@@ -104,32 +134,31 @@ class OraFabricMCP:
             return json.loads(body)
         except json.JSONDecodeError:
             pass
-        # text/event-stream. Events are separated by a blank line, not by the
-        # optional `event:` field — a server may send several data-only events
-        # in one response. Long calls can be preceded by progress notifications,
-        # which are JSON-RPC messages with no `id`; taking the last event blindly
-        # would return a notification, and concatenating every data line would
-        # produce invalid JSON and silently yield {}.
-        fallback, response = {}, {}
-        for chunk in re.split(r"\r?\n\r?\n", body):
-            data = [ln[5:].strip() for ln in chunk.splitlines() if ln.startswith("data:")]
+        messages = []
+        for event in cls._events(body):
+            data = [line[5:].strip() for line in event if line.startswith("data:")]
             if not data:
                 continue
             try:
-                parsed = json.loads("\n".join(data))
+                messages.append(json.loads("\n".join(data)))
             except json.JSONDecodeError:
                 continue
-            if isinstance(parsed, dict) and ("result" in parsed or "error" in parsed):
-                response = parsed
-            elif not fallback:
-                fallback = parsed
-        return response or fallback
+        for message in reversed(messages):
+            if isinstance(message, dict) and "id" in message and (
+                "result" in message or "error" in message
+            ):
+                return message
+        return {}
 
     def _request(self, method, params=None):
         self._next_id += 1
         reply = self._post(
             {"jsonrpc": "2.0", "id": self._next_id, "method": method, "params": params or {}}
         )
+        if not reply:
+            # Never hand back an empty dict: a response we could not read is a
+            # transport failure, and the caller must not treat it as "no data".
+            raise MCPError("no JSON-RPC response in the body returned by %s" % self.endpoint)
         if "error" in reply:
             error = reply["error"]
             raise MCPError(
@@ -179,7 +208,12 @@ class OraFabricMCP:
                 time.sleep(1.5 * attempt)
 
         if result.get("isError"):
-            raise MCPError("tool %s reported an error: %s" % (name, result))
+            error = self._business_error(result)
+            raise MCPError(
+                error.get("message") or "tool %s reported an error" % name,
+                code=error.get("code"),
+                payload=error or result,
+            )
 
         structured = result.get("structuredContent")
         if structured:
@@ -193,6 +227,27 @@ class OraFabricMCP:
         return result
 
     # -------------------------------------------------------------------- helpers
+
+    @staticmethod
+    def _business_error(result):
+        """Pull `{code, message}` out of a failed tool call.
+
+        A failed call is still HTTP 200 and still a JSON-RPC *result*: the error sits in
+        `structuredContent.error`, or in the first `content[].text` as JSON. Callers are
+        told to branch on `code`, so the code has to survive the trip.
+        """
+        structured = result.get("structuredContent")
+        if isinstance(structured, dict) and isinstance(structured.get("error"), dict):
+            return structured["error"]
+        for item in result.get("content") or []:
+            if isinstance(item, dict) and item.get("type") == "text":
+                try:
+                    parsed = json.loads(item.get("text") or "")
+                except (json.JSONDecodeError, TypeError):
+                    continue
+                if isinstance(parsed, dict) and isinstance(parsed.get("error"), dict):
+                    return parsed["error"]
+        return {}
 
     @staticmethod
     def field(item, *names, default=None):

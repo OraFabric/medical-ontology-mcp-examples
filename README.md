@@ -2,6 +2,13 @@
   <img src="assets/orafabric-logo.png" width="72" alt="OraFabric">
 </p>
 
+<p align="left">
+  <img src="https://img.shields.io/badge/MCP-Streamable%20HTTP-0b5d45?style=flat-square" alt="Streamable HTTP">
+  <img src="https://img.shields.io/badge/tools-6-0b5d45?style=flat-square" alt="Six tools">
+  <img src="https://img.shields.io/badge/API-%240.03%20per%20call-c49242?style=flat-square" alt="$0.03 per call">
+  <img src="https://img.shields.io/badge/python-3.9%2B-3776ab?style=flat-square" alt="Python 3.9+">
+</p>
+
 # OraFabric Medical Ontology MCP Examples
 
 **Connect AI agents to structured biomedical knowledge.**
@@ -187,6 +194,7 @@ Not medical advice. Not for clinical use without independent verification.
 | `examples/03-evidence-based-reasoning/` | Disagreement-first workflow, lactate / CD8+ T cell case |
 | `examples/04-python-api-integration/` | A drop-in stdlib client and an app-level integration |
 | `case-studies/` | Published research produced with these tools, with reproduction steps |
+| `tests/` | Transport tests, no network needed: the stream shapes a client has to survive |
 
 ---
 
@@ -227,9 +235,9 @@ From literature to computable knowledge. From knowledge to discovery.
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) — add an example in a folder, keep it runnable, no keys.
 - [SECURITY.md](SECURITY.md) — never commit a key; how to report a vulnerability.
-- [LICENSE](LICENSE) — MIT, for the example code and documentation here.
-- [NOTICE](NOTICE) — what that licence does **not** cover: the OraFabric service,
-  knowledge base and datasets are not distributed here and remain governed by the
+- [LICENSE](LICENSE) — MIT for the example code only; the scope is spelled out in
+  [NOTICE](NOTICE). The OraFabric service, knowledge
+  base and datasets are **not** covered by that licence and remain governed by the
   OraFabric terms of service.
 
 If something here does not run, open an issue with the output of `verify.py`. That is the

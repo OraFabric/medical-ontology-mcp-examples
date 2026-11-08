@@ -14,7 +14,11 @@ jobs:
           python-version: "3.11"
       # Every example must at least import and parse. This is the cheapest possible
       # guarantee that a PR does not ship a broken script.
-      - run: python -m compileall -q examples assets
+      - run: python -m compileall -q examples assets tests
+
+      # Transport behaviour that no live call will exercise until the day a server
+      # sends a progress notification ahead of its result. Six cases, no network.
+      - run: python -m unittest discover -s tests -v
 
       - name: guard against committed secrets
         run: |

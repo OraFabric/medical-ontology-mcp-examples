@@ -10,7 +10,6 @@ Exit code 0 means you are connected.
 
 import json
 import os
-import re
 import sys
 import urllib.error
 import urllib.request
@@ -43,7 +42,13 @@ def post(payload, api_key, session_id=None):
 
 
 def parse(body):
-    """Accept either a JSON body or a text/event-stream body."""
+    """Accept either a JSON body or a text/event-stream body.
+
+    Events in text/event-stream are separated by blank lines; `event:` is an optional
+    field inside one event, so it must not be used as the delimiter. A server that
+    sends a progress notification before the result would otherwise have every `data:`
+    line joined into one invalid blob.
+    """
     body = body.strip()
     if not body:
         return {}
@@ -51,25 +56,31 @@ def parse(body):
         return json.loads(body)
     except json.JSONDecodeError:
         pass
-    # Events are separated by a blank line. A long call may be preceded by
-    # progress notifications (JSON-RPC messages with no "id"), so keep the last
-    # event that is an actual response rather than the last event seen.
-    fallback, response = {}, {}
-    for chunk in re.split(r"\r?\n\r?\n", body):
-        data = [ln[5:].strip() for ln in chunk.splitlines() if ln.startswith("data:")]
+    events, current = [], []
+    for line in body.splitlines():
+        if not line.strip():
+            if current:
+                events.append(current)
+                current = []
+            continue
+        current.append(line)
+    if current:
+        events.append(current)
+    messages = []
+    for event in events:
+        data = [line[5:].strip() for line in event if line.startswith("data:")]
         if not data:
             continue
         try:
-            parsed = json.loads("\n".join(data))
+            messages.append(json.loads("\n".join(data)))
         except json.JSONDecodeError:
-            if not fallback:
-                fallback = {"raw": "\n".join(data)[:400]}
             continue
-        if isinstance(parsed, dict) and ("result" in parsed or "error" in parsed):
-            response = parsed
-        elif not fallback:
-            fallback = parsed
-    return response or fallback
+    for message in reversed(messages):
+        if isinstance(message, dict) and "id" in message and (
+            "result" in message or "error" in message
+        ):
+            return message
+    return {}
 
 
 def main():
@@ -98,6 +109,11 @@ def main():
         api_key,
     )
     reply = parse(body)
+    if not reply:
+        raise SystemExit(
+            "handshake returned something we could not read as a JSON-RPC message:\n%s"
+            % body[:400]
+        )
     if "error" in reply:
         raise SystemExit("handshake failed: %s" % reply["error"])
     protocol = reply.get("result", {}).get("protocolVersion", "?")
@@ -129,6 +145,9 @@ def main():
     if "error" in reply:
         raise SystemExit("get_coverage failed: %s" % reply["error"])
     result = reply.get("result", {})
+    if result.get("isError"):
+        # A failed tool call is HTTP 200 with isError set — not a JSON-RPC error.
+        raise SystemExit("get_coverage failed: %s" % json.dumps(result)[:400])
     payload = result.get("structuredContent")
     if not payload:
         for item in result.get("content", []):

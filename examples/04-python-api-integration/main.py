@@ -80,7 +80,7 @@ def main():
             if best.get("name"):
                 anchors.append(best["name"])
 
-    _log("retrieving ... (this takes 11-27 s)")
+    _log("retrieving ... (this takes 11-50 s)")
     arguments = {"query": args.query}
     if args.max_evidence:
         arguments["max_evidence"] = args.max_evidence

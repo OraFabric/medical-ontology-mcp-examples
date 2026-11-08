@@ -31,7 +31,10 @@ Two behaviours from the client worth knowing:
 - `call()` returns the parsed payload directly (`structuredContent` when present, otherwise
   the decoded text content), so you never unwrap `content[0].text` yourself.
 - business errors are raised as `MCPError` carrying the server's `code` — `ambiguous_concept`,
-  `insufficient_balance`, `invalid_api_key`. Branch on the code, never on the message text.
+  `insufficient_balance`, `invalid_api_key`. They arrive in two shapes and the client
+  normalises both: HTTP 401 with a JSON-RPC `error` object (bad key), and **HTTP 200 with
+  `result.isError: true` and the code in `structuredContent.error`** (balance, ambiguity).
+  Branch on the code, never on the message text, and never on the HTTP status alone.
 
 ---
 
