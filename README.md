@@ -227,8 +227,9 @@ From literature to computable knowledge. From knowledge to discovery.
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) — add an example in a folder, keep it runnable, no keys.
 - [SECURITY.md](SECURITY.md) — never commit a key; how to report a vulnerability.
-- [LICENSE](LICENSE) — MIT for the example code only. The OraFabric service, knowledge
-  base and datasets are **not** covered by that licence and remain governed by the
+- [LICENSE](LICENSE) — MIT, for the example code and documentation here.
+- [NOTICE](NOTICE) — what that licence does **not** cover: the OraFabric service,
+  knowledge base and datasets are not distributed here and remain governed by the
   OraFabric terms of service.
 
 If something here does not run, open an issue with the output of `verify.py`. That is the

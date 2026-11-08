@@ -1,0 +1,28 @@
+OraFabric Medical Ontology — examples repository
+Copyright (c) 2026 Ora Fabric (Singapore) Pte. Ltd.
+
+WHAT THE MIT LICENCE COVERS
+
+The MIT licence in LICENSE covers the example code and documentation in this
+repository, and nothing else. Copy it, change it, ship it in your own work.
+
+WHAT IT DOES NOT COVER
+
+  - the OraFabric service, API or MCP endpoint;
+  - the OraFabric knowledge base, ontology, graph data or datasets;
+  - any article text, finding or metadata returned by the service;
+  - the OraFabric name, logo or marks.
+
+None of those are distributed in this repository, so the MIT grant does not
+reach them. This notice states that plainly rather than leaving it to be
+inferred.
+
+Use of the service is governed by the OraFabric terms of service and by the
+terms attached to the data you access through it. Papers referenced by the
+service remain under their own licences, held by their publishers; OraFabric
+returns extracted findings and links, not article text, and neither the service
+nor this repository redistributes full text.
+
+The service is for research use only. Nothing here is medical advice.
+
+Questions: business@orafabric.com
